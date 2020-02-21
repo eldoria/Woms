@@ -1,5 +1,6 @@
 import pygame
 from math import *
+import time
 
 # initialize the game
 pygame.init()
@@ -38,7 +39,10 @@ missile_icon = pygame.transform.scale(missile_image, (15, 15))
 
 # weapons display on the screen
 grenade_weapon = pygame.transform.scale(grenade_image, (25, 25))
-missile_weapon = pygame.transform.scale(grenade_image, (25, 25))
+missile_weapon = pygame.transform.scale(missile_image, (25, 25))
+
+explosion_image = pygame.image.load("explosion.png")
+explosion_image = pygame.transform.scale(explosion_image, (50, 50))
 
 # set the player action points
 playerPoints = 2000
@@ -47,21 +51,21 @@ playerPoints = 2000
 namePlayer1 = 'J1'
 namePlayer2 = 'J2'
 
-def player(x, y):
-    screen.blit(playerImg, (x, y))
+time_choose = 0
+
+font = pygame.font.SysFont("Times New Roman", 18)
+display_name_player1 = font.render(namePlayer1, 1, (0, 255, 0))
 
 
 def display_game():
     # draw a black screen
     screen.fill((0, 0, 0))
-    font = pygame.font.SysFont("Times New Roman", 18)
+    display_timer = font.render(str(round(time_choose, 3)), 1, (255, 255, 255))
     display_action_points = font.render(str(playerPoints), 1, (255, 255, 255))
-    display_name_player1 = font.render(namePlayer1, 1, (0, 255, 0))
-    # display_name_player2 = font.render(namePlayer1, 1, (0, 0, 255))
     screen.blit(display_name_player1, (playerX + 25, playerY - 20))
     screen.blit(display_action_points, (10, 10))
     # draw the player
-    player(playerX, playerY)
+    screen.blit(playerImg, (playerX, playerY))
     # draw the weapons
     screen.blit(grenade_image, rect_grenade)
     screen.blit(missile_image, rect_missile)
@@ -71,6 +75,8 @@ def display_game():
     # draw the icons when the player clicks on the weapons
     if weapon_selected == "grenade":
         screen.blit(grenade_icon, (playerX + 40, playerY - 20))
+        screen.blit(display_timer, (200, 10))
+
     elif weapon_selected == "missile":
         screen.blit(missile_icon, (playerX + 40, playerY - 20))
     # draw the scene
@@ -132,18 +138,71 @@ def modify_speed():
 
 
 j = 1
+bool_time_select = False
 
 
 def shot():
     global j
+    global time_choose
+    global bool_time_select
     if weapon_selected == "grenade":
-        print("lancer grenade")
+        if time_choose == 0 or not bool_time_select:
+            print(bool_time_select)
+            if key_pressed[pygame.K_RIGHT] and time_choose < 10:
+                time_choose += .03
+            elif key_pressed[pygame.K_LEFT] and time_choose > 0:
+                time_choose -= .03
+            if time_choose > 0 and key_pressed[pygame.K_KP_ENTER]:
+                bool_time_select = True
+        else:
+            j = 0
+            y_previous = 10
+            y = 0
+            time_pass = 0
+            while True:
+                j += .1
+                time.sleep(.03)
+                time_pass += .03
+                x = cos(angle / 180 * pi) * speed * j + 35 + playerX
+                if j != 0:
+                    y_previous = y
+                y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
+                display_game()
+                if y < y_previous:
+                    screen.blit(grenade_weapon, (x, y))
+                else:
+                    screen.blit(pygame.transform.flip(grenade_weapon, False, True), (x, y))
+                pygame.display.update()
+                if time_pass >= time_choose:
+                    display_game()
+                    screen.blit(explosion_image, (x, y))
+                    pygame.display.update()
+                    time.sleep(0.5)
+                    break
+
     elif weapon_selected == "missile":
-        calculate_trajectory(0)
-        print("playerY : " + str(playerY) + ", y : " + str(y))
-        while y > playerY:
-            print("test")
-            j += 0.1
+        j = 0
+        y_previous = 10
+        y = 0
+        while True:
+            j += .1
+            time.sleep(.03)
+            x = cos(angle / 180 * pi) * speed * j + 35 + playerX
+            if j != 0:
+                y_previous = y
+            y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
+            display_game()
+            if y < y_previous:
+                screen.blit(missile_weapon, (x, y))
+            else:
+                screen.blit(pygame.transform.flip(missile_weapon, False, True), (x, y))
+            pygame.display.update()
+            if y > playerY:
+                display_game()
+                screen.blit(explosion_image, (x, y))
+                pygame.display.update()
+                time.sleep(0.5)
+                break
 
 
 def calculate_trajectory(i):
