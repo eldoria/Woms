@@ -47,7 +47,6 @@ playerPoints = 2000
 namePlayer1 = 'J1'
 namePlayer2 = 'J2'
 
-
 def player(x, y):
     screen.blit(playerImg, (x, y))
 
@@ -83,7 +82,6 @@ speed = 80
 set_angle = 1
 set_speed = 1
 bool_key_press = 1
-rad = angle / 180 * pi
 x_init = 35 + playerX
 y_init = playerY - 20
 
@@ -94,16 +92,15 @@ def visualize_trajectory():
     if set_angle:
         modify_angle()
     elif set_speed and (key_pressed[pygame.K_KP_ENTER] == 0 or bool_key_press == 0):
-        print("speed detected")
         bool_key_press = 0
         modify_speed()
     elif set_speed == 0 and set_angle == 0:
-        print("shot")
         shot()
 
     # preview the trajectory in order to aim better
-    for i in range(1, 4):
-        calculate_trajectory(i)
+    if set_angle != 0 or set_speed != 0:
+        for i in range(1, 4):
+            calculate_trajectory(i)
 
 
 # modify the angle of the projectile before shot
@@ -142,18 +139,20 @@ def shot():
     if weapon_selected == "grenade":
         print("lancer grenade")
     elif weapon_selected == "missile":
-        y = calculate_trajectory(1)
-        while y > playerY + 20:
+        calculate_trajectory(0)
+        print("playerY : " + str(playerY) + ", y : " + str(y))
+        while y > playerY:
+            print("test")
             j += 0.1
-            y = calculate_trajectory(j)
 
 
 def calculate_trajectory(i):
-    x = cos(rad) * speed * i + 35 + playerX
-    y = (9.82) * (i * i / 2) + sin(rad) * speed * i + playerY - 20
+    global x
+    x = cos(angle / 180 * pi) * speed * i + 35 + playerX
+    global y
+    y = (9.82) * (i * i / 2) + sin(angle / 180 * pi) * speed * i + playerY - 20
     # print("i : ", i, " x : ", int(x), " and y : ", int(y))
     pygame.draw.circle(screen, 0xFF0000, [int(x), int(y)], 1, 1)
-    return y
 
 
 weapon_selected = ""
