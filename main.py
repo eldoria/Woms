@@ -20,11 +20,14 @@ wormsLeft = pygame.image.load("imgWorms.png")
 wormsLeft = pygame.transform.scale(wormsLeft, (50, 50))
 wormsRight = pygame.transform.flip(wormsLeft, True, False)
 
-# set the player image and his coordinates
+# set the players image and his coordinates
 playerImg = wormsRight
 playerImg = pygame.transform.scale(playerImg, (50, 50))
+playerImg2 = wormsLeft
 playerX = 100
 playerY = 485
+playerX2 = 900
+playerY2 = playerY
 
 # set the weapons images and display their icon on the top right of the screen
 grenade_image = pygame.image.load("grenade.png")
@@ -53,10 +56,13 @@ playerPoints = 2000
 namePlayer1 = 'J1'
 namePlayer2 = 'J2'
 
+player_turn = 'J1'
+
 time_choose = 0
 
 font = pygame.font.SysFont("Times New Roman", 18)
 display_name_player1 = font.render(namePlayer1, 1, (255, 0, 0))
+display_name_player2 = font.render(namePlayer2, 1, (0, 0, 255))
 
 bool_update_scene = True
 
@@ -67,9 +73,11 @@ def display_game():
     display_timer = font.render(str(round(time_choose, 3)), 1, (255, 255, 255))
     display_action_points = font.render(str(playerPoints), 1, (255, 255, 255))
     screen.blit(display_name_player1, (playerX + 25, playerY - 20))
+    screen.blit(display_name_player2, (playerX2, playerY2 - 20))
     screen.blit(display_action_points, (10, 10))
     # draw the player
     screen.blit(playerImg, (playerX, playerY))
+    screen.blit(playerImg2, (playerX2, playerY))
     # draw the weapons
     screen.blit(grenade_image, rect_grenade)
     screen.blit(missile_image, rect_missile)
@@ -192,12 +200,12 @@ def shot():
                     speed = .6 * speed
                     previous_x = x - playerX - 25
                     previous_y = 40
-
                 if time_pass >= time_choose or speed < 10:
                     display_game()
                     screen.blit(explosion_image, (x, y))
                     pygame.display.update()
                     time.sleep(0.5)
+                    check_damages()
                     break
 
     elif weapon_selected == "missile":
@@ -223,6 +231,7 @@ def shot():
                 screen.blit(explosion_image, (x, y))
                 pygame.display.update()
                 time.sleep(0.5)
+                check_damages(x, y)
                 break
 
 
@@ -231,8 +240,25 @@ def calculate_trajectory(i):
     x = cos(angle / 180 * pi) * speed * i + 35 + playerX
     global y
     y = (9.82) * (i * i / 2) + sin(angle / 180 * pi) * speed * i + playerY - 20
-    # print("i : ", i, " x : ", int(x), " and y : ", int(y))
     pygame.draw.circle(screen, 0x000000, [int(x), int(y)], 1, 1)
+
+
+def check_damages(x, y):
+    print("x vaut " + str(x) + " et y vaut " + str(y))
+    if abs(x - playerX2) < 50 and abs(y - playerY2) < 50:
+        game_end()
+
+
+def game_end():
+    font2 = pygame.font.SysFont("Times New Roman", 35)
+    display_str = font2.render("Game Over", 1, (255, 255, 255))
+    screen.fill((0, 0, 0))
+    screen.blit(display_str, (480, 300))
+    pygame.display.update()
+    time.sleep(4)
+    global running
+    running = False
+    pygame.quit()
 
 
 weapon_selected = ""
