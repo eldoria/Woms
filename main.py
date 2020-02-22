@@ -58,7 +58,6 @@ namePlayer2 = 'J2'
 
 player_turn = 'J1'
 
-time_choose = 0
 
 font = pygame.font.SysFont("Times New Roman", 18)
 display_name_player1 = font.render(namePlayer1, 1, (255, 0, 0))
@@ -182,14 +181,13 @@ def shot():
                 bool_shot = True
         else:
             bool_shot = False
-            y = 0
             time_pass = 0
             while True:
                 j += .1
                 time.sleep(.03)
                 time_pass += .03
                 x = cos(angle / 180 * pi) * speed * j + 35 + playerX + previous_x
-                y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20 + previous_y
+                y = 9.82 * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20 + previous_y
                 display_game()
                 screen.blit(pygame.transform.rotate(grenade_weapon, -(j + previous_j)*30), (x, y))
                 pygame.display.update()
@@ -205,7 +203,7 @@ def shot():
                     screen.blit(explosion_image, (x, y))
                     pygame.display.update()
                     time.sleep(0.5)
-                    check_damages()
+                    check_damages(x, y)
                     break
 
     elif weapon_selected == "missile":
@@ -217,7 +215,7 @@ def shot():
             x = cos(angle / 180 * pi) * speed * j + 35 + playerX
             if j != 0.1:
                 y_previous = y
-            y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
+            y = 9.82 * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
             # print("x : " + str(x) + ", y : " + str(y) + "and j : " + str(j))
             display_game()
             if y < y_previous:
@@ -239,7 +237,7 @@ def calculate_trajectory(i):
     global x
     x = cos(angle / 180 * pi) * speed * i + 35 + playerX
     global y
-    y = (9.82) * (i * i / 2) + sin(angle / 180 * pi) * speed * i + playerY - 20
+    y = 9.82 * (i * i / 2) + sin(angle / 180 * pi) * speed * i + playerY - 20
     pygame.draw.circle(screen, 0x000000, [int(x), int(y)], 1, 1)
 
 
