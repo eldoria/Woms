@@ -156,6 +156,13 @@ def shot():
     global time_choose
     global bool_time_select
     global bool_shot
+    global speed
+    # previous j will be use for keep the grenade rotation when the grenade rebound
+    previous_j = 0
+    # previous x and y are use in order to be add to the new trajectory during the rebound
+    # Without them the projectile reappears at the top of the worms after the rebound
+    previous_x = 0
+    previous_y = 0
     if weapon_selected == "grenade":
         if not bool_time_select:
             if key_pressed[pygame.K_RIGHT] and time_choose < 10:
@@ -173,12 +180,20 @@ def shot():
                 j += .1
                 time.sleep(.03)
                 time_pass += .03
-                x = cos(angle / 180 * pi) * speed * j + 35 + playerX
-                y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
+                x = cos(angle / 180 * pi) * speed * j + 35 + playerX + previous_x
+                y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20 + previous_y
                 display_game()
-                screen.blit(pygame.transform.rotate(grenade_weapon, -j*30), (x, y))
+                screen.blit(pygame.transform.rotate(grenade_weapon, -(j + previous_j)*30), (x, y))
                 pygame.display.update()
-                if time_pass >= time_choose:
+
+                if y > playerY + 20:
+                    previous_j += j
+                    j = 0
+                    speed = .6 * speed
+                    previous_x = x - playerX - 25
+                    previous_y = 40
+
+                if time_pass >= time_choose or speed < 10:
                     display_game()
                     screen.blit(explosion_image, (x, y))
                     pygame.display.update()
