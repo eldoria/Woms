@@ -72,6 +72,8 @@ def display_game():
     # draw the start of the trajectory
     if bool_visualize_trajectory:
         visualize_trajectory()
+    elif (not bool_time_select or bool_shot) and weapon_selected == "grenade":
+        shot()
     # draw the icons when the player clicks on the weapons
     if weapon_selected == "grenade":
         screen.blit(grenade_icon, (playerX + 40, playerY - 20))
@@ -101,6 +103,8 @@ def visualize_trajectory():
         bool_key_press = 0
         modify_speed()
     elif set_speed == 0 and set_angle == 0:
+        global bool_visualize_trajectory
+        bool_visualize_trajectory = False
         shot()
 
     # preview the trajectory in order to aim better
@@ -126,9 +130,9 @@ def modify_speed():
     global speed
     global set_speed
     if key_pressed[pygame.K_RIGHT]:
-        speed += 1
+        speed += .2
     elif key_pressed[pygame.K_LEFT]:
-        speed -= 1
+        speed -= .2
     elif key_pressed[pygame.K_KP_ENTER]:
         set_speed = 0
     if speed < 35:
@@ -137,26 +141,28 @@ def modify_speed():
         speed = 100
 
 
-j = 1
+j = 0
 bool_time_select = False
+time_choose = 0
+bool_shot = False
 
 
 def shot():
     global j
     global time_choose
     global bool_time_select
+    global bool_shot
     if weapon_selected == "grenade":
-        if time_choose == 0 or not bool_time_select:
-            print(bool_time_select)
+        if not bool_time_select:
             if key_pressed[pygame.K_RIGHT] and time_choose < 10:
                 time_choose += .03
             elif key_pressed[pygame.K_LEFT] and time_choose > 0:
                 time_choose -= .03
             if time_choose > 0 and key_pressed[pygame.K_KP_ENTER]:
                 bool_time_select = True
+                bool_shot = True
         else:
-            j = 0
-            y_previous = 10
+            bool_shot = False
             y = 0
             time_pass = 0
             while True:
@@ -164,14 +170,9 @@ def shot():
                 time.sleep(.03)
                 time_pass += .03
                 x = cos(angle / 180 * pi) * speed * j + 35 + playerX
-                if j != 0:
-                    y_previous = y
                 y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
                 display_game()
-                if y < y_previous:
-                    screen.blit(grenade_weapon, (x, y))
-                else:
-                    screen.blit(pygame.transform.flip(grenade_weapon, False, True), (x, y))
+                screen.blit(pygame.transform.rotate(grenade_weapon, -j*30), (x, y))
                 pygame.display.update()
                 if time_pass >= time_choose:
                     display_game()
@@ -181,22 +182,23 @@ def shot():
                     break
 
     elif weapon_selected == "missile":
-        j = 0
         y_previous = 10
         y = 0
         while True:
             j += .1
             time.sleep(.03)
             x = cos(angle / 180 * pi) * speed * j + 35 + playerX
-            if j != 0:
+            if j != 0.1:
                 y_previous = y
             y = (9.82) * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
+            # print("x : " + str(x) + ", y : " + str(y) + "and j : " + str(j))
             display_game()
             if y < y_previous:
                 screen.blit(missile_weapon, (x, y))
             else:
                 screen.blit(pygame.transform.flip(missile_weapon, False, True), (x, y))
             pygame.display.update()
+
             if y > playerY:
                 display_game()
                 screen.blit(explosion_image, (x, y))
