@@ -7,7 +7,9 @@ pygame.init()
 
 # create screen
 screen = pygame.display.set_mode((1100, 700))
-
+background_picture = pygame.image.load("terrain.jpg")
+background = background_picture.convert()
+background = pygame.transform.scale(background, (1100, 700))
 # title and icon
 pygame.display.set_caption("Worms")
 icon = pygame.image.load("imgWorms.png")
@@ -22,7 +24,7 @@ wormsRight = pygame.transform.flip(wormsLeft, True, False)
 playerImg = wormsRight
 playerImg = pygame.transform.scale(playerImg, (50, 50))
 playerX = 100
-playerY = 500
+playerY = 485
 
 # set the weapons images and display their icon on the top right of the screen
 grenade_image = pygame.image.load("grenade.png")
@@ -54,12 +56,14 @@ namePlayer2 = 'J2'
 time_choose = 0
 
 font = pygame.font.SysFont("Times New Roman", 18)
-display_name_player1 = font.render(namePlayer1, 1, (0, 255, 0))
+display_name_player1 = font.render(namePlayer1, 1, (255, 0, 0))
+
+bool_update_scene = True
 
 
 def display_game():
     # draw a black screen
-    screen.fill((0, 0, 0))
+    screen.blit(background, (0, 0))
     display_timer = font.render(str(round(time_choose, 3)), 1, (255, 255, 255))
     display_action_points = font.render(str(playerPoints), 1, (255, 255, 255))
     screen.blit(display_name_player1, (playerX + 25, playerY - 20))
@@ -213,7 +217,7 @@ def calculate_trajectory(i):
     global y
     y = (9.82) * (i * i / 2) + sin(angle / 180 * pi) * speed * i + playerY - 20
     # print("i : ", i, " x : ", int(x), " and y : ", int(y))
-    pygame.draw.circle(screen, 0xFF0000, [int(x), int(y)], 1, 1)
+    pygame.draw.circle(screen, 0x000000, [int(x), int(y)], 1, 1)
 
 
 weapon_selected = ""
