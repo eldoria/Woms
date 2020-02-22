@@ -66,6 +66,8 @@ display_name_player2 = font.render(namePlayer2, 1, (0, 0, 255))
 bool_update_scene = True
 
 
+
+
 def display_game():
     # draw a black screen
     screen.blit(background, (0, 0))
@@ -242,9 +244,12 @@ def calculate_trajectory(i):
 
 
 def check_damages(x, y):
-    print("x vaut " + str(x) + " et y vaut " + str(y))
     if abs(x - playerX2) < 50 and abs(y - playerY2) < 50:
         game_end()
+    elif abs(x - playerX) < 50 and abs(y - playerY) < 50:
+        game_end()
+    else:
+        new_turn()
 
 
 def game_end():
@@ -257,6 +262,45 @@ def game_end():
     global running
     running = False
     pygame.quit()
+
+
+def new_turn():
+    # swap playerX/PlayerY and PlayerX2 and playerY2
+    # inverser l'affichage
+    global playerX
+    global playerY
+    global playerX2
+    global playerY2
+    global player_turn
+    global playerPoints
+    global bool_update_scene
+    global set_angle
+    global set_speed
+    global bool_key_press
+    global j
+    global bool_time_select
+    global time_choose
+    global bool_shot
+    if player_turn == "J1":
+        player_turn = "J2"
+    else:
+        player_turn = "J1"
+    tmpX = playerX
+    tmpY = playerY
+    playerX = playerX2
+    playerY = playerY2
+    playerX2 = tmpX
+    playerY2 = tmpY
+    # reset booleans and variables
+    playerPoints = 2000
+    bool_update_scene = True
+    set_angle = 1
+    set_speed = 1
+    bool_key_press = 1
+    j = 0
+    bool_time_select = False
+    time_choose = 0
+    bool_shot = False
 
 
 weapon_selected = ""
