@@ -15,7 +15,7 @@ pygame.display.set_caption("Worms")
 icon = pygame.image.load("imgWorms.png")
 pygame.display.set_icon(icon)
 
-# load the player and set position
+# load the players and set size
 wormsLeft = pygame.image.load("imgWorms.png")
 wormsLeft = pygame.transform.scale(wormsLeft, (50, 50))
 wormsRight = pygame.transform.flip(wormsLeft, True, False)
@@ -25,9 +25,9 @@ playerImg = wormsRight
 playerImg = pygame.transform.scale(playerImg, (50, 50))
 playerImg2 = wormsLeft
 playerX = 100
-playerY = 485
 playerX2 = 900
-playerY2 = playerY
+playerY = playerY2 = 485
+
 
 # set the weapons images and display their icon on the top right of the screen
 grenade_image = pygame.image.load("grenade.png")
@@ -56,16 +56,13 @@ playerPoints = 2000
 namePlayer1 = 'J1'
 namePlayer2 = 'J2'
 
+# determine which player is playing
 player_turn = 'J1'
 
-
+# print the name of the players on screen
 font = pygame.font.SysFont("Times New Roman", 18)
 display_name_player1 = font.render(namePlayer1, 1, (255, 0, 0))
 display_name_player2 = font.render(namePlayer2, 1, (0, 0, 255))
-
-bool_update_scene = True
-
-
 
 
 def display_game():
@@ -73,8 +70,12 @@ def display_game():
     screen.blit(background, (0, 0))
     display_timer = font.render(str(round(time_choose, 3)), 1, (255, 255, 255))
     display_action_points = font.render(str(playerPoints), 1, (255, 255, 255))
-    screen.blit(display_name_player1, (playerX + 25, playerY - 20))
-    screen.blit(display_name_player2, (playerX2, playerY2 - 20))
+    if player_turn == "J1":
+        screen.blit(display_name_player1, (playerX + 20, playerY - 20))
+        screen.blit(display_name_player2, (playerX2, playerY2 - 20))
+    else:
+        screen.blit(display_name_player2, (playerX, playerY - 20))
+        screen.blit(display_name_player1, (playerX2 + 20, playerY2 - 20))
     screen.blit(display_action_points, (10, 10))
     # draw the player
     screen.blit(playerImg, (playerX, playerY))
@@ -98,7 +99,7 @@ def display_game():
     pygame.display.update()
 
 
-angle = -60
+angle = -22
 speed = 80
 set_angle = 1
 set_speed = 1
@@ -130,6 +131,7 @@ def visualize_trajectory():
 def modify_angle():
     global angle
     global set_angle
+    print(angle)
     if key_pressed[pygame.K_RIGHT]:
         angle += .1
     elif key_pressed[pygame.K_LEFT]:
@@ -187,7 +189,7 @@ def shot():
             while True:
                 j += .1
                 time.sleep(.03)
-                time_pass += .03
+                time_pass += .035
                 x = cos(angle / 180 * pi) * speed * j + 35 + playerX + previous_x
                 y = 9.82 * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20 + previous_y
                 display_game()
@@ -273,7 +275,6 @@ def new_turn():
     global playerY2
     global player_turn
     global playerPoints
-    global bool_update_scene
     global set_angle
     global set_speed
     global bool_key_press
@@ -281,19 +282,27 @@ def new_turn():
     global bool_time_select
     global time_choose
     global bool_shot
+    global playerImg
+    global playerImg2
+    global angle
     if player_turn == "J1":
         player_turn = "J2"
+        playerImg = pygame.transform.flip(playerImg, True, False)
+        playerImg2 = pygame.transform.flip(playerImg2, True, False)
+        angle += 215
     else:
         player_turn = "J1"
-    tmpX = playerX
-    tmpY = playerY
+        playerImg = pygame.transform.flip(playerImg, True, False)
+        playerImg2 = pygame.transform.flip(playerImg2, True, False)
+        angle -= 215
+    tmp_x = playerX
+    tmp_y = playerY
     playerX = playerX2
     playerY = playerY2
-    playerX2 = tmpX
-    playerY2 = tmpY
+    playerX2 = tmp_x
+    playerY2 = tmp_y
     # reset booleans and variables
     playerPoints = 2000
-    bool_update_scene = True
     set_angle = 1
     set_speed = 1
     bool_key_press = 1
