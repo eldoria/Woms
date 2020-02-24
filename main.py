@@ -1,6 +1,7 @@
 import pygame
 from math import *
 import time
+import random
 
 # initialize the game
 pygame.init()
@@ -24,10 +25,14 @@ wormsRight = pygame.transform.flip(wormsLeft, True, False)
 playerImg = wormsRight
 playerImg = pygame.transform.scale(playerImg, (50, 50))
 playerImg2 = wormsLeft
-playerX = 100
-playerX2 = 900
+# little random on worms position X
+playerX = 100 + random.randrange(-100, 100)
+playerX2 = 900 + random.randrange(-100, 100)
 playerY = playerY2 = 485
 
+# set the wind image
+wind_image = pygame.image.load("wind_arrow.png")
+wind_image = pygame.transform.scale(wind_image, (50, 50))
 
 # set the weapons images and display their icon on the top right of the screen
 grenade_image = pygame.image.load("grenade.png")
@@ -45,12 +50,19 @@ missile_icon = pygame.transform.scale(missile_image, (15, 15))
 # weapons display on the screen
 grenade_weapon = pygame.transform.scale(grenade_image, (25, 25))
 missile_weapon = pygame.transform.scale(missile_image, (25, 25))
+missile_weapon_reversed = pygame.transform.flip(missile_weapon, True, False)
 
 explosion_image = pygame.image.load("explosion.png")
 explosion_image = pygame.transform.scale(explosion_image, (50, 50))
 
 # set the player action points
 playerPoints = 2000
+
+# initialize wind
+wind_x = 0
+wind_y = 0
+intensity_wind = 0
+random_value_wind = 0
 
 # name of player's worm
 namePlayer1 = 'J1'
@@ -63,6 +75,7 @@ player_turn = 'J1'
 font = pygame.font.SysFont("Times New Roman", 18)
 display_name_player1 = font.render(namePlayer1, 1, (255, 0, 0))
 display_name_player2 = font.render(namePlayer2, 1, (0, 0, 255))
+display_intensity_wind = ""
 
 
 def display_game():
@@ -77,9 +90,12 @@ def display_game():
         screen.blit(display_name_player2, (playerX, playerY - 20))
         screen.blit(display_name_player1, (playerX2 + 20, playerY2 - 20))
     screen.blit(display_action_points, (10, 10))
+    screen.blit(display_intensity_wind, (500, 0))
     # draw the player
     screen.blit(playerImg, (playerX, playerY))
     screen.blit(playerImg2, (playerX2, playerY))
+    # draw the wind arrow
+    screen.blit(wind_image, (600, 0))
     # draw the weapons
     screen.blit(grenade_image, rect_grenade)
     screen.blit(missile_image, rect_missile)
@@ -113,7 +129,7 @@ def visualize_trajectory():
     global bool_key_press
     if set_angle:
         modify_angle()
-    elif set_speed and (key_pressed[pygame.K_KP_ENTER] == 0 or bool_key_press == 0):
+    elif set_speed and (pygame.mouse.get_pressed() == (0, 0, 0) or bool_key_press == 0):
         bool_key_press = 0
         modify_speed()
     elif set_speed == 0 and set_angle == 0:
@@ -123,7 +139,7 @@ def visualize_trajectory():
 
     # preview the trajectory in order to aim better
     if set_angle != 0 or set_speed != 0:
-        for i in range(1, 4):
+        for i in range(1, 15):
             calculate_trajectory(i)
 
 
@@ -131,12 +147,11 @@ def visualize_trajectory():
 def modify_angle():
     global angle
     global set_angle
-    print(angle)
     if key_pressed[pygame.K_RIGHT]:
         angle += .1
     elif key_pressed[pygame.K_LEFT]:
         angle -= .1
-    elif key_pressed[pygame.K_KP_ENTER]:
+    elif pygame.mouse.get_pressed() == (0, 0, 1):
         set_angle = 0
 
 
@@ -148,7 +163,7 @@ def modify_speed():
         speed += .2
     elif key_pressed[pygame.K_LEFT]:
         speed -= .2
-    elif key_pressed[pygame.K_KP_ENTER]:
+    elif pygame.mouse.get_pressed() == (0, 0, 1):
         set_speed = 0
     if speed < 35:
         speed = 35
@@ -180,7 +195,7 @@ def shot():
                 time_choose += .03
             elif key_pressed[pygame.K_LEFT] and time_choose > 0:
                 time_choose -= .03
-            if time_choose > 0 and key_pressed[pygame.K_KP_ENTER]:
+            if time_choose > 0 and pygame.mouse.get_pressed() == (0, 0, 1):
                 bool_time_select = True
                 bool_shot = True
         else:
@@ -216,19 +231,25 @@ def shot():
         while True:
             j += .1
             time.sleep(.03)
-            x = cos(angle / 180 * pi) * speed * j + 35 + playerX
+            x = 35 + playerX + cos(angle / 180 * pi) * speed * j + intensity_wind * cos(random_value_wind / 180 * pi) * j
             if j != 0.1:
                 y_previous = y
-            y = 9.82 * (j * j / 2) + sin(angle / 180 * pi) * speed * j + playerY - 20
+            y = playerY - 20 + 9.82 * (j * j / 2) + sin(angle / 180 * pi) * speed * j - intensity_wind * sin(random_value_wind / 180 * pi) * j
             # print("x : " + str(x) + ", y : " + str(y) + "and j : " + str(j))
             display_game()
             if y < y_previous:
-                screen.blit(missile_weapon, (x, y))
+                if player_turn == "J1":
+                    screen.blit(missile_weapon, (x, y))
+                else:
+                    screen.blit(missile_weapon_reversed, (x, y))
             else:
-                screen.blit(pygame.transform.flip(missile_weapon, False, True), (x, y))
+                if player_turn == "J1":
+                    screen.blit(pygame.transform.flip(missile_weapon, False, True), (x, y))
+                else:
+                    screen.blit(pygame.transform.flip(missile_weapon_reversed, False, True), (x, y))
             pygame.display.update()
 
-            if y > playerY:
+            if y > playerY + 10:
                 display_game()
                 screen.blit(explosion_image, (x, y))
                 pygame.display.update()
@@ -239,10 +260,30 @@ def shot():
 
 def calculate_trajectory(i):
     global x
-    x = cos(angle / 180 * pi) * speed * i + 35 + playerX
     global y
-    y = 9.82 * (i * i / 2) + sin(angle / 180 * pi) * speed * i + playerY - 20
+    if weapon_selected == "missile":
+        x = 35 + playerX + cos(angle / 180 * pi) * speed * i + intensity_wind * cos(random_value_wind / 180 * pi) * i
+        y = playerY - 20 + 9.82 * (i * i / 2) + sin(angle / 180 * pi) * speed * i - intensity_wind * sin(random_value_wind / 180 * pi) * i
+    else:
+        x = 35 + playerX + cos(angle / 180 * pi) * speed * i
+        y = playerY - 20 + 9.82 * (i * i / 2) + sin(angle / 180 * pi) * speed * i
     pygame.draw.circle(screen, 0x000000, [int(x), int(y)], 1, 1)
+
+
+def calculate_wind():
+    global wind_image
+    global intensity_wind, random_value_wind
+
+    random_value_wind = random.randrange(0, 360)
+    wind_image = pygame.transform.rotate(wind_image, random_value_wind)
+
+    intensity_wind = random.randrange(1, 4)
+    intensity_wind *= 10
+    global display_intensity_wind
+    display_intensity_wind = font.render("intensity : " + str(intensity_wind), 1, (0, 0, 0))
+
+
+calculate_wind()
 
 
 def check_damages(x, y):
@@ -322,6 +363,15 @@ while running:
 
     # check if weapons are selected
     mouse_pos = pygame.mouse.get_pos()
+    key_pressed = pygame.key.get_pressed()
+
+    if weapon_selected == "":
+        if pygame.mouse.get_pressed() == (1, 0, 0):
+            weapon_selected = "grenade"
+            bool_visualize_trajectory = 1
+        elif pygame.mouse.get_pressed() == (0, 0, 1):
+            weapon_selected = "missile"
+            bool_visualize_trajectory = 1
 
     if rect_grenade.collidepoint(mouse_pos) and pygame.mouse.get_pressed() == (1, 0, 0):
         weapon_selected = "grenade"
@@ -331,7 +381,6 @@ while running:
         bool_visualize_trajectory = 1
 
     # user's input
-    key_pressed = pygame.key.get_pressed()
     if playerPoints > 0:
         # detect the a instead of the q because pygame consider the keyboard to be a QWERTY
         if key_pressed[pygame.K_a]:
